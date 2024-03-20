@@ -1,0 +1,40 @@
+{{- $replicas := int .Values.server.replicas }}
+{{- $pvBaseName := .Values.persistentVolume.name }}
+{{- $pvReclaimPolicy := .Values.persistentVolume.reclaimPolicy }}
+{{- $pvStorageClass := .Values.persistentVolume.storageClass }}
+{{- $pvStorage := .Values.server.storage }}
+{{- $pvAccessMode := .Values.persistentVolume.accessMode }}
+{{- $pvLocalPath := .Values.persistentVolume.local.path }}
+{{- $pvNodeAffinityKey := .Values.persistentVolume.nodeAffinity.key }}
+{{- $pvNodeAffinityOperator := .Values.persistentVolume.nodeAffinity.operator }}
+{{- $pvNodeAffinityNode := .Values.persistentVolume.nodeAffinity.node }}
+
+{{- range $i, $_ := until $replicas }}
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ printf "%s-%d" $pvBaseName $i }}
+spec:
+  persistentVolumeReclaimPolicy: {{ $pvReclaimPolicy }}
+  storageClassName: {{ $pvStorageClass }}
+  capacity:
+    storage: {{ $pvStorage }}
+  accessModes:
+    - {{ $pvAccessMode }}
+  local:
+    path: "{{ $pvLocalPath }}"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: {{ $pvNodeAffinityKey }}
+          operator: {{ $pvNodeAffinityOperator }}
+          values:
+          - {{ $pvNodeAffinityNode }}
+
+{{- if ne $i (sub $replicas 1) }}
+---
+{{- end }}
+
+{{- end }}

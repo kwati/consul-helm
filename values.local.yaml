@@ -1,0 +1,64 @@
+global:
+  enabled: true
+  logLevel: "info"
+  name: consul-mesh
+  domain: consul
+  peering:
+    enabled: false
+  image: hashicorp/consul:1.17.2
+  imagePullSecrets: []
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "0.5"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+server:
+  enabled: "true"
+  logLevel: ""
+  image: null
+  replicas: 3
+  bootstrapExpect: null
+  storage: 500Mi
+  storageClass: local-storage
+  affinity: |
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node
+            operator: In
+            values:
+            - master
+  tolerations: |
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoExecute"
+
+ui:
+  enabled: true
+  service:
+    enabled: true
+    type: NodePort
+    nodePort:
+      http: 30099
+      https: null
+
+connectInject:
+  enabled: false
+  image: null
+  default: false
+
+persistentVolume:
+  name: consul-pv
+  reclaimPolicy: Retain
+  storageClass: local-storage
+  accessMode: ReadWriteOnce
+  local:
+    path: "/data"
+  nodeAffinity:
+    key: node
+    operator: In
+    node: master
